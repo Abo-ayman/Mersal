@@ -30,7 +30,7 @@ jobs:
         run: unzip -q mersal_customer.zip -d src
 
       - name: Generate Android scaffold
-        run: flutter create --org com.mersal --project-name mersal_customer --platforms android app
+        run: flutter create --org com.mersal --project-name customer --platforms android app
 
       - name: Apply our code
         run: |
