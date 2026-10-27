@@ -1,11 +1,11 @@
-name: Build MERSAL Driver APK
+name: Build MERSAL Customer APK
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - "mersal_driver.zip"
+      - "mersal_customer.zip"
       - ".github/workflows/build.yml"
 
 jobs:
@@ -25,12 +25,12 @@ jobs:
         with:
           channel: stable
           cache: true
-          
+
       - name: Unpack project
-        run: unzip -q mersal_driver.zip -d src
+        run: unzip -q mersal_customer.zip -d src
 
       - name: Generate Android scaffold
-        run: flutter create --org com.mersal --project-name driver --platforms android app
+        run: flutter create --org com.mersal --project-name customer --platforms android app
 
       - name: Apply our code
         run: |
@@ -38,7 +38,7 @@ jobs:
           cp -r src/lib app/lib
           cp src/pubspec.yaml app/pubspec.yaml
           if [ -d src/assets ]; then rm -rf app/assets; cp -r src/assets app/assets; fi
-          cp src/mersal-driver.jks app/android/app/mersal-driver.jks
+          cp src/mersal-release.jks app/android/app/mersal-release.jks
           python3 src/scripts/patch_android.py app
 
       - name: Build release APK
@@ -50,12 +50,12 @@ jobs:
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mersal-driver-apk
+          name: mersal-customer-apk
           path: app/build/app/outputs/flutter-apk/app-release.apk
 
       - name: Publish APK as a release (easy download from phone)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: driver-build-${{ github.run_number }}
-          name: Driver build ${{ github.run_number }}
+          tag_name: customer-build-${{ github.run_number }}
+          name: Customer build ${{ github.run_number }}
           files: app/build/app/outputs/flutter-apk/app-release.apk
