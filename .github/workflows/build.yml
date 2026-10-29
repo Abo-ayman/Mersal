@@ -33,6 +33,9 @@ jobs:
         run: flutter create --org com.mersal --project-name customer --platforms android app
 
       - name: Apply our code
+        env:
+          MERSAL_KEYSTORE_PASSWORD: ${{ secrets.MERSAL_KEYSTORE_PASSWORD }}
+          MERSAL_KEY_PASSWORD: ${{ secrets.MERSAL_KEY_PASSWORD }}
         run: |
           rm -rf app/lib app/test
           cp -r src/lib app/lib
@@ -40,6 +43,12 @@ jobs:
           if [ -d src/assets ]; then rm -rf app/assets; cp -r src/assets app/assets; fi
           cp src/mersal-release.jks app/android/app/mersal-release.jks
           python3 src/scripts/patch_android.py app
+
+      - name: Analyze Dart code
+        working-directory: app
+        run: |
+          flutter pub get
+          flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Build release APK
         working-directory: app
