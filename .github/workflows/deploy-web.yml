@@ -2,20 +2,12 @@ name: Deploy MERSAL Customer Web to Firebase Hosting
 
 on:
   workflow_dispatch:
-    inputs:
-      channel:
-        description: 'preview (test link) or live (public site)'
-        required: true
-        default: preview
-        type: choice
-        options: [preview, live]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -45,13 +37,13 @@ jobs:
 
       - name: Write Firebase Hosting config
         run: |
-          printf '%s' '{"hosting":{"public":"app/build/web","ignore":["firebase.json","**/.*"],"rewrites":[{"source":"**","destination":"/index.html"}]}}' > firebase.json
-          printf '%s' '{"projects":{"default":"mersal-delivery-2687a"}}' > .firebaserc
+          printf '%s' '{"hosting":[{"target":"app","public":"app/build/web","ignore":["firebase.json","**/.*"],"rewrites":[{"source":"**","destination":"/index.html"}]}]}' > firebase.json
+          printf '%s' '{"projects":{"default":"mersal-delivery-2687a"},"targets":{"mersal-delivery-2687a":{"hosting":{"app":["mersalapp"]}}}}' > .firebaserc
 
-      - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MERSAL }}
-          channelId: ${{ inputs.channel }}
-          projectId: mersal-delivery-2687a
+      - name: Deploy to mersalapp (live)
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MERSAL }}
+        run: |
+          printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx --yes firebase-tools@latest deploy --only hosting:app --project mersal-delivery-2687a --non-interactive
