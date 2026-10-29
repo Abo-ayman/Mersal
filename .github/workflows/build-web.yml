@@ -1,0 +1,44 @@
+name: Build MERSAL Customer Web (check only)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Unpack project
+        run: unzip -q mersal_customer.zip -d src
+
+      - name: Generate web scaffold
+        run: flutter create --org com.mersal --project-name customer --platforms web app
+
+      - name: Apply our code
+        run: |
+          rm -rf app/lib app/test
+          cp -r src/lib app/lib
+          cp src/pubspec.yaml app/pubspec.yaml
+          if [ -d src/assets ]; then rm -rf app/assets; cp -r src/assets app/assets; fi
+
+      - name: Analyze Dart code
+        working-directory: app
+        run: |
+          flutter pub get
+          flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Build web release
+        working-directory: app
+        run: flutter build web --release
+
+      - name: Upload web build as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mersal-customer-web
+          path: app/build/web
