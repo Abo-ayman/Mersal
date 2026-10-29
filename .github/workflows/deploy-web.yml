@@ -2,6 +2,13 @@ name: Deploy MERSAL Customer Web to Firebase Hosting
 
 on:
   workflow_dispatch:
+    inputs:
+      channel:
+        description: 'preview (test link) or live (public site)'
+        required: true
+        default: preview
+        type: choice
+        options: [preview, live]
 
 jobs:
   deploy:
@@ -46,5 +53,5 @@ jobs:
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MERSAL }}
-          channelId: live
+          channelId: ${{ inputs.channel }}
           projectId: mersal-delivery-2687a
